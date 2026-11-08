@@ -7,7 +7,6 @@ class TestUnit(unittest.TestCase):
 		app.testing = True
 		self.client = app.test_client()
 	
-	# Complete this function to test proper handling of missing input field in the input
 	def test_post_missing_field(self):
 		form_data = {
 			'temperature': '270.277',
@@ -21,30 +20,34 @@ class TestUnit(unittest.TestCase):
 			'clouds': '9'
 		}
 		response = self.client.post('/', data=form_data)
+		# We catch the exception, so the response has 200 status code
+		self.assertEqual(response.status_code, 200)
+		self.assertIn("""<p style="color:red;">Error processing input: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.</p>""",
+			response.data.decode('utf-8'))
 
-	# Complete this function to test that the model can be loaded correctly
 	def test_model_can_be_loaded(self):
 		model = load_model()
-		
+		assert model is not None
+		assert hasattr(model, 'predict')
 
-	# Test model classification is within the 9 classes, each time for a different class with three different inputs
 	def test_clear_classification_output(self):
 		test_input = np.array([269.686,1002,78,0,23,0,0,0,0]).reshape(1,-1)
 		class_result, _ = classify_weather(test_input) 
 		# Ensure that 'clear' class is returned
+		self.assertEqual(class_result, "clear")
 		
 	def test_rainy_classification_output(self):
 		test_input = np.array([279.626,998,99,1,314,0.3,0,0,88]).reshape(1,-1)
 		class_result, _ = classify_weather(test_input) 
 		# Ensure that 'rainy' class is returned
+		self.assertEqual(class_result, "rainy")
 		
 
 	def test_foggy_classification_output(self):
-
 		test_input = np.array([289.47,1015,88,2,300,0,0,0,20]).reshape(1,-1)
-		class_result, _ = classify_weather(test_input) 
-
+		class_result, _ = classify_weather(test_input)
 		# Ensure that 'foggy' class is returned
+		self.assertEqual(class_result, "foggy")
 		
 if __name__ == '__main__':
 	unittest.main()
