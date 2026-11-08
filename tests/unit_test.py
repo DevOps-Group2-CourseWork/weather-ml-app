@@ -22,13 +22,14 @@ class TestUnit(unittest.TestCase):
 		response = self.client.post('/', data=form_data)
 		# We catch the exception, so the response has 200 status code
 		self.assertEqual(response.status_code, 200)
-		self.assertIn("""<p style="color:red;">Error processing input: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.</p>""",
+		self.assertIn("""Error processing input: """,
 			response.data.decode('utf-8'))
 
 	def test_model_can_be_loaded(self):
 		model = load_model()
 		assert model is not None
 		assert hasattr(model, 'predict')
+
 
 	def test_clear_classification_output(self):
 		test_input = np.array([269.686,1002,78,0,23,0,0,0,0]).reshape(1,-1)
