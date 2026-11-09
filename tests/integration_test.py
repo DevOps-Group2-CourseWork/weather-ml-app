@@ -1,4 +1,5 @@
 import unittest
+import re
 from app import app  # Import your Flask app instance
 
 
@@ -24,14 +25,18 @@ class TestModelAppIntegration(unittest.TestCase):
 
 		response = self.client.post('/', data=form_data)
 	
-		# Complete below
 		# Ensure that the result page (response.data) should include a weather prediction
-		
+		self.assertEqual(response.status_code, 200)
+		response_data = response.data.decode('utf-8')
+		self.assertIn("<h1>Prediction Result</h1>", response_data)
+		self.assertIn("The weather is:", response_data)
 	
 		# Ensure that the result page should include a prediction time
+		self.assertIsNotNone(re.search(r'Prediction time:</strong>\s*(\d+(?:\.\d+)?)\s*ms', response_data),
+							 "Result page should include a prediction time in ms")
 		
 
-		html_text = response.data.decode('utf-8').lower()
+		html_text = response_data.lower()
 		valid_classes = [
 			'clear', 'cloudy', 'drizzly', 'foggy', 'hazey',
 			'misty', 'rainy', 'smokey', 'thunderstorm'
@@ -39,7 +44,7 @@ class TestModelAppIntegration(unittest.TestCase):
 		found = any(weather in html_text for weather in valid_classes)
 		
 		# Ensure that classification is in valid classes, provide an error message if not.
-		
+		self.assertTrue(found, msg="Weather not found in result page")
 
 if __name__ == '__main__':
 	unittest.main()
