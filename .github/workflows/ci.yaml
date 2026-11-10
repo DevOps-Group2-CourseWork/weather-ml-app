@@ -3,8 +3,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main]
+  push:
+    branches: [main]
 jobs:
   build:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -26,14 +29,13 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.9'
           architecture: 'x64'
           cache: 'pip'
 
@@ -42,26 +44,38 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest pytest-cov
 
-      - name: Test with pytest
+      # Coverage is collected across the three steps with --cov-append and
+      # reported once, in the last step.
+      - name: Run unit tests
         run: |
-          pytest ./tests/* --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          python -m pytest tests/unit_test.py --junitxml=junit/unit-test-results.xml --cov=app --cov-report=
+      - name: Run smoke tests
+        run: |
+          python -m pytest tests/smoke_test.py --junitxml=junit/smoke-test-results.xml --cov=app --cov-append --cov-report=
+
+      - name: Run integration tests
+        run: |
+          python -m pytest tests/integration_test.py --junitxml=junit/integration-test-results.xml --cov=app --cov-append --cov-report=xml:junit/coverage.xml --cov-report=html
+      
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: junit/test-results.xml
+          path: |
+            junit/*-test-results.xml
+            junit/coverage.xml
           if-no-files-found: warn
 
   upload-coverage:
     runs-on: ubuntu-latest
     needs: test
-    if: always()
+    if: always() && github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v6
-
       - name: Download test results
+
         uses: actions/download-artifact@v4
         with:
           name: test-results
@@ -70,6 +84,6 @@ jobs:
       - name: Upload coverage report
         uses: actions/upload-code-coverage@v1
         with:
-          file: junit/test-results.xml
+          file: junit/coverage.xml
           language: Python
           label: code-coverage/pytest
