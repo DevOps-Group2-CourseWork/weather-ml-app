@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     if: github.event_name == 'push'
-    runs-on: ubuntu-20.04 # Required for python 3.9
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
 
@@ -28,7 +28,8 @@ jobs:
           pip install -r requirements.txt
 
   test:
-    runs-on: ubuntu-20.04 # Required for python 3.9
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
 
@@ -69,7 +70,7 @@ jobs:
           if-no-files-found: warn
 
   upload-coverage:
-    runs-on: ubuntu-20.04 # Required for python 3.9
+    runs-on: ubuntu-22.04
     needs: test
     if: always() && github.event_name == 'pull_request'
     steps:
