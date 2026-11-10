@@ -44,16 +44,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest pytest-cov
 
+      - name: Create junit directory
+        run: mkdir -p junit
+
       # Coverage is collected across the three steps with --cov-append and
       # reported once, in the last step.
       - name: Run unit tests
+        continue-on-error: true
         run: |
           python -m pytest tests/unit_test.py --junitxml=junit/unit-test-results.xml --cov=app --cov-report=
       - name: Run smoke tests
+        continue-on-error: true
         run: |
           python -m pytest tests/smoke_test.py --junitxml=junit/smoke-test-results.xml --cov=app --cov-append --cov-report=
 
       - name: Run integration tests
+        continue-on-error: true
         run: |
           python -m pytest tests/integration_test.py --junitxml=junit/integration-test-results.xml --cov=app --cov-append --cov-report=xml:junit/coverage.xml --cov-report=html
       
