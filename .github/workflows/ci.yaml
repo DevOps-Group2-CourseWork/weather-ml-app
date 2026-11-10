@@ -7,8 +7,8 @@ on:
     branches: [main]
 jobs:
   build:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-20.04 # Required for python 3.9
+    runs-on: ubuntu-22.04 # Required for python 3.9
+    if: github.event_name == 'push
     steps:
       - uses: actions/checkout@v6
 
@@ -27,9 +27,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-  unit-tests:
-    if: github.event_name == 'pull_request'
+  tests:
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        test: [unit, smoke, integration]
     steps:
       - uses: actions/checkout@v6
 
@@ -41,128 +43,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest pytest-cov
+        run: pip install -r requirements.txt pytest
 
-      - name: Run unit tests
-        run: |
-          python -m pytest tests/unit_test.py --junitxml=junit/unit-test-results.xml --cov=app --cov-report=xml:junit/coverage.xml
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-results
-          path: junit/
-          if-no-files-found: warn
-
-  smoke-tests:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
-          architecture: 'x64'
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest pytest-cov
-
-      - name: Run smoke tests
-        run: |
-          python -m pytest tests/smoke_test.py --junitxml=junit/smoke-test-results.xml --cov=app --cov-report=xml:junit/coverage.xml
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: smoke-test-results
-          path: junit/
-          if-no-files-found: warn
-
-  integration-tests:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
-          architecture: 'x64'
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest pytest-cov
-
-      - name: Run integration tests
-        run: |
-          python -m pytest tests/integration_test.py --junitxml=junit/integration-test-results.xml --cov=app --cov-report=xml:junit/coverage.xml
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-test-results
-          path: junit/
-          if-no-files-found: warn
-
-  upload-coverage:
-    runs-on: ubuntu-22.04
-    needs: [unit-tests, smoke-tests, integration-tests]
-    if: always() && github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
-          architecture: 'x64'
-
-      - name: Install coverage tools
-        run: pip install coverage
-
-      - name: Download unit test results
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-test-results
-          path: junit/unit
-
-      - name: Download smoke test results
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: smoke-test-results
-          path: junit/smoke
-
-      - name: Download integration test results
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: integration-test-results
-          path: junit/integration
-
-      - name: Merge coverage reports
-        run: |
-          coverage combine --keep junit/unit/.coverage junit/smoke/.coverage junit/integration/.coverage 2>/dev/null || true
-          coverage xml -o junit/coverage.xml 2>/dev/null || cp junit/unit/coverage.xml junit/coverage.xml 2>/dev/null || cp junit/smoke/coverage.xml junit/coverage.xml 2>/dev/null || cp junit/integration/coverage.xml junit/coverage.xml
-
-      - name: Upload coverage report
-        if: hashFiles('junit/coverage.xml') != ''
-        uses: actions/upload-code-coverage@v1
-        with:
-          file: junit/coverage.xml
-          language: Python
-          label: code-coverage/pytest
+      - name: Run tests
+        run: python -m pytest tests/${{ matrix.test }}_test.py
