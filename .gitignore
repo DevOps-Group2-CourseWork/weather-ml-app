@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Visual Studio local settings and cache
+.vs/
+
+# Local virtual environment
+env1/
+
+# __init__.py for now. We'll see if the CI breaks without this.
+tests/__init__.py

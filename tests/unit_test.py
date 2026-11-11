@@ -19,16 +19,36 @@ class TestUnit(unittest.TestCase):
 			'snow': '0',
 			'clouds': '9'
 		}
+		# Set the test prerequisites
 		response = self.client.post('/', data=form_data)
-		# We catch the exception, so the response has 200 status code
+		response_data = response.data.decode('utf-8')
+
+		# Check that the response has 200 status code with a valid error message
 		self.assertEqual(response.status_code, 200)
-		self.assertIn("""Error processing input: """,
-			response.data.decode('utf-8'))
+		self.assertIn("Error processing input", response_data)
+
+		# Check that the user is sent back to the form successfully
+		self.assertIn('<form method="POST" action="/">', response_data)
+
+		# Check that no prediction was made
+		self.assertNotIn("The weather is:", response_data)
+
 
 	def test_model_can_be_loaded(self):
+		# Set the test prerequisites
 		model = load_model()
-		assert model is not None
-		assert hasattr(model, 'predict')
+
+		# Check the model loaded and can make predictions
+		self.assertIsNotNone(model, "Model failed to load")
+		self.assertTrue(hasattr(model, 'predict'), "Loaded object has no predict method")
+
+		# Check we're working with the correct model and our 9 inputs
+		self.assertEqual(model.n_features_in_, 9, "Model should expect 9 input features")
+
+		# Check the model can make a prediction on valid input. I've just used zeros here to check we're getting a valid output.
+		prediction = model.predict(np.zeros((1, 9)))
+		self.assertEqual(len(prediction), 1, "Model should return one prediction")
+
 
 
 	def test_clear_classification_output(self):
