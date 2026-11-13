@@ -1,6 +1,6 @@
 import unittest
 import re
-from app import app  # Import your Flask app instance
+from app import app, weather_classes  # Import your Flask app instance
 
 
 class TestModelAppIntegration(unittest.TestCase):
@@ -25,26 +25,24 @@ class TestModelAppIntegration(unittest.TestCase):
 
 		response = self.client.post('/', data=form_data)
 	
+		# Set the test prerequisites
+		response = self.client.post('/', data=form_data)
+		response_data = response.data.decode('utf-8')
+	
 		# Ensure that the result page (response.data) should include a weather prediction
 		self.assertEqual(response.status_code, 200)
-		response_data = response.data.decode('utf-8')
-		self.assertIn("<h1>Prediction Result</h1>", response_data)
-		self.assertIn("The weather is:", response_data)
+		self.assertNotIn("Error processing input", response_data)
+		match = re.search(r'The weather is:</strong>\s*(\w+)', response_data)
+		self.assertIsNotNone(match, "Prediction value not found on result page")
 	
 		# Ensure that the result page should include a prediction time
-		self.assertIsNotNone(re.search(r'Prediction time:</strong>\s*(\d+(?:\.\d+)?)\s*ms', response_data),
-							 "Result page should include a prediction time in ms")
-		
-
-		html_text = response_data.lower()
-		valid_classes = [
-			'clear', 'cloudy', 'drizzly', 'foggy', 'hazey',
-			'misty', 'rainy', 'smokey', 'thunderstorm'
-		]
-		found = any(weather in html_text for weather in valid_classes)
-		
-		# Ensure that classification is in valid classes, provide an error message if not.
-		self.assertTrue(found, msg="Weather not found in result page")
+		time_match = re.search(r'Prediction time:</strong>\s*(\d+(?:\.\d+)?)\s*ms', response_data)
+		self.assertIsNotNone(time_match, "Result page should include a prediction time in ms")
+		latency = float(time_match.group(1))
+		self.assertGreaterEqual(latency, 0, "Prediction time should not be negative")
+				
+		# Ensure that classification is in valid classes.
+		self.assertIn(match.group(1), weather_classes)
 
 if __name__ == '__main__':
 	unittest.main()
