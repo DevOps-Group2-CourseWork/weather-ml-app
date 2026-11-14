@@ -29,7 +29,7 @@ jobs:
 
   Docker-Build:
     needs: tests
-#    if: github.event_name == 'push'
+    if: github.event_name == 'push'
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v6
