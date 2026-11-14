@@ -1,23 +1,28 @@
 from flask import Flask, request, render_template
 import pickle
-import numpy as np
+import pandas as pd
 import time
 
 app = Flask(__name__)
 
+feature_names = ['temp', 'pressure', 'humidity', 'wind_speed', 'wind_deg',
+				 'rain_1h', 'rain_3h', 'snow_3h', 'clouds_all']
+
 weather_classes = ['clear', 'cloudy', 'drizzly', 'foggy', 'hazey', 'misty', 'rainy', 'smokey', 'thunderstorm']
 
-def load_model(model_path = 'model/model.pkl'):
+
+def load_model(model_path='model/model.pkl'):
 	with open(model_path, 'rb') as f:
 		return pickle.load(f)
 
-def classify_weather(features):
+
+def classify_weather(features: pd.DataFrame) -> tuple:
 	model = load_model()
 	start = time.time()
 	prediction_index = model.predict(features)[0]
 	latency = round((time.time() - start) * 1000, 2)
 	prediction = weather_classes[int(prediction_index)]
-	
+
 	return prediction, latency
 
 
@@ -36,15 +41,13 @@ def home():
 			snow = float(request.form.get('snow', 0) or 0)
 			clouds = float(request.form.get('clouds', 0) or 0)
 
-			features = np.array([
+			features = pd.DataFrame([[
 				temperature, pressure, humidity,
 				wind_speed, wind_deg, rain_1h,
 				rain_3h, snow, clouds
-			]).reshape(1, -1)
+			]], columns=feature_names)
 
-			
 			prediction, latency = classify_weather(features)
-
 
 			return render_template('result.html', prediction=prediction, latency=latency)
 

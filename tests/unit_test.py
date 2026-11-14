@@ -1,6 +1,9 @@
 import unittest
-from app import app, classify_weather, load_model
-import numpy as np
+from app import app, classify_weather, load_model, feature_names
+import pandas as pd
+
+def make_input(values):
+	return pd.DataFrame([values], columns=feature_names)
 
 class TestUnit(unittest.TestCase):
 	def setUp(self):
@@ -46,30 +49,32 @@ class TestUnit(unittest.TestCase):
 		self.assertEqual(model.n_features_in_, 9, "Model should expect 9 input features")
 
 		# Check the model can make a prediction on valid input. I've just used zeros here to check we're getting a valid output.
-		prediction = model.predict(np.zeros((1, 9)))
+		prediction = model.predict(make_input([0] * 9))
 		self.assertEqual(len(prediction), 1, "Model should return one prediction")
 
 
 
 	def test_clear_classification_output(self):
-		test_input = np.array([269.686,1002,78,0,23,0,0,0,0]).reshape(1,-1)
+		test_input = make_input([269.686,1002,78,0,23,0,0,0,0])
 		class_result, _ = classify_weather(test_input) 
 		# Ensure that 'clear' class is returned
 		self.assertEqual(class_result, "clear")
 		
 	def test_rainy_classification_output(self):
-		test_input = np.array([279.626,998,99,1,314,0.3,0,0,88]).reshape(1,-1)
+		test_input = make_input([279.626,998,99,1,314,0.3,0,0,88])
 		class_result, _ = classify_weather(test_input) 
 		# Ensure that 'rainy' class is returned
 		self.assertEqual(class_result, "rainy")
+
+	@unittest.expectedFailure
+	# Known model limitation: this fog-like input is currently classified as cloudy.
+	# Marked expectedFailure until the model is retrained.
+	# TODO: Remove the decorator once it passes.
+	def test_foggy_classification_output(self):
+		test_input = make_input([289.47,1015,88,2,300,0,0,0,20])
+		class_result, _ = classify_weather(test_input)
+		# Ensure that 'foggy' class is returned
+		self.assertEqual(class_result, "foggy")
 		
-
-# 	def test_foggy_classification_output(self):
-# 		test_input = np.array([289.47,1015,88,2,300,0,0,0,20]).reshape(1,-1)
-# 		class_result, _ = classify_weather(test_input)
-# 		# Ensure that 'foggy' class is returned
-# 		self.assertEqual(class_result, "foggy")
-
-
 if __name__ == '__main__':
 	unittest.main()
