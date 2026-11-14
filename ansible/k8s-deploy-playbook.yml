@@ -1,0 +1,32 @@
+- name: A playbook to deploy the weather app to Kubernetes
+  hosts: localhost
+  user: ubuntu
+  become: no
+
+  vars:
+    myPath: /home/ubuntu/weather-ml-app/
+
+  tasks:
+  - name: 1. Create the Deployment
+    shell:
+      cmd: kubectl apply -f "{{ myPath }}k8s/deployment.yaml"
+
+  - name: 2. Create the Service
+    shell:
+      cmd: kubectl apply -f "{{ myPath }}k8s/service.yaml"
+
+  - name: 3. Scale the Deployment
+    shell:
+      cmd: kubectl scale deployments/weather-ml-app --replicas=4
+
+  - name: 4. List the Deployments
+    shell:
+      cmd: kubectl get deployments
+
+  - name: 5. List the Pods
+    shell:
+      cmd: kubectl get pods
+
+  - name: 6. List the Services
+    shell:
+      cmd: kubectl get services
