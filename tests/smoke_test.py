@@ -13,7 +13,7 @@ class TestAppSmoke(unittest.TestCase):
 			'wind_speed': '3.6', 'wind_deg': '180', 'rain_1h': '0',
 			'rain_3h': '0', 'snow': '0', 'clouds': '20'
 		}
-		response = self.client.get('/', data=form_data)
+		response = self.client.post('/', data=form_data)
 		response_data = response.data.decode('utf-8')
 
 		# Check that the app didn't crash
