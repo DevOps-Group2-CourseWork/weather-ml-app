@@ -23,8 +23,6 @@ class TestModelAppIntegration(unittest.TestCase):
 			'clouds': '20'             # %
 		}
 
-		response = self.client.post('/', data=form_data)
-	
 		# Set the test prerequisites
 		response = self.client.post('/', data=form_data)
 		response_data = response.data.decode('utf-8')
