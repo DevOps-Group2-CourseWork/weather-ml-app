@@ -30,4 +30,5 @@ jobs:
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           kubectl set image deployment/weather-ml-app weather-ml-app=${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:${{ github.event.workflow_run.head_sha }}
-          kubectl rollout status deployment/weather-ml-app
+          kubectl annotate deployment/weather-ml-app kubernetes.io/change-cause="${{ github.event.workflow_run.head_sha }} - run ${{ github.run_id }}" --overwrite
+          kubectl rollout status deployment/weather-ml-app --timeout=180s
