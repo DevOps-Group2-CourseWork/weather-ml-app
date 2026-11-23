@@ -47,5 +47,5 @@ jobs:
         push: true
         tags: |
           ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v2
-          ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:${{ github.sha }}
+          ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v2
           
