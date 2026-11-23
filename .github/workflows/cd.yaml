@@ -29,7 +29,5 @@ jobs:
         run: |
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
-          kubectl set image deployment/weather-ml-app weather-ml-app=${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v3
           kubectl annotate deployment/weather-ml-app kubernetes.io/change-cause="${{ github.event.workflow_run.head_sha }} - run ${{ github.run_id }}" --overwrite
           kubectl rollout status deployment/weather-ml-app --timeout=180s
-          kubectl port-forward --address 0.0.0.0 service/node-port-service 5000:5000
