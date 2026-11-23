@@ -60,11 +60,11 @@ class TestUnit(unittest.TestCase):
 		# Ensure that 'clear' class is returned
 		self.assertEqual(class_result, "clear")
 		
-	def test_rainy_classification_output(self):
+	def test_rain_classification_output(self):
 		test_input = make_input([279.626,998,99,1,314,0.3,0,0,88])
 		class_result, _ = classify_weather(test_input) 
-		# Ensure that 'rainy' class is returned
-		self.assertEqual(class_result, "rainy")
+		# Ensure that 'rain' class is returned
+		self.assertEqual(class_result, "rain")
 
 	@unittest.expectedFailure
 	# Known model limitation: this fog-like input is currently classified as cloudy.
