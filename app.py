@@ -8,7 +8,7 @@ app = Flask(__name__)
 feature_names = ['temp', 'pressure', 'humidity', 'wind_speed', 'wind_deg',
 				 'rain_1h', 'rain_3h', 'snow_3h', 'clouds_all']
 
-weather_classes = ['clear', 'cloudy', 'drizzly', 'foggy', 'hazey', 'misty', 'rainy', 'smokey', 'thunderstorm']
+weather_classes = ['clear', 'cloudy', 'drizzly', 'foggy', 'hazey', 'misty', 'rain', 'smokey', 'thunderstorm']
 
 
 def load_model(model_path='model/model.pkl'):
