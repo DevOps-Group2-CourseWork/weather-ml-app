@@ -27,9 +27,30 @@ jobs:
       - name: Run tests
         run: python -m pytest tests/${{ matrix.test }}_test.py
 
-  Docker-Build:
+  docker-build-test:
     needs: tests
-    if: github.event_name == 'push'
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Build Docker Image
+      uses: docker/build-push-action@v7
+      with:
+        context: .
+        push: false
+        load: true
+        tags: ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v3
+
+    - name: Test Docker Image
+      run: |
+        docker run --rm -d --name weather-test -p 5000:5000 ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v3
+        sleep 10
+        curl -f http://localhost:5000 || (docker logs weather-test && exit 1)
+        docker stop weather-test
+
+  docker-push:
+    needs: docker-build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v6
@@ -40,12 +61,11 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build & Push Docker Image
+    - name: Push Docker Image
       uses: docker/build-push-action@v7
       with:
         context: .
         push: true
         tags: |
-          ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v3
-          ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v3
-          
+          ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:latest
+          ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:latest
