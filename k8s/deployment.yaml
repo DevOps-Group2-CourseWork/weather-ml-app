@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: weather-ml-app
-        image: randomwalkie192/weather-ml-app:v4
+        image: randomwalkie192/weather-ml-app:v3
         ports:
         - containerPort: 5000

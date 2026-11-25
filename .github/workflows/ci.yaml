@@ -39,7 +39,7 @@ jobs:
         context: .
         push: false
         load: true
-        tags: ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v4
+        tags: ${{secrets.DOCKERHUB_USERNAME}}/weather-ml-app:v3
 
     - name: Test Docker Image
       run: |
